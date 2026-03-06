@@ -28,7 +28,7 @@ escrowRouter.get('/dispute/all', protect, getAllDisputes)
 escrowRouter.post(
   '/owner/verify/submit',
   protect,
-  upload.fields([                    // ✅ now uses Cloudinary storage
+  upload.fields([                    
     { name: 'aadharImage', maxCount: 1 },
     { name: 'rcImage', maxCount: 1 },
     { name: 'selfieImage', maxCount: 1 },

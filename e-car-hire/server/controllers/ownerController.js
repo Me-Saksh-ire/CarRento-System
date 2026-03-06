@@ -3,13 +3,9 @@ import Car from "../models/Car.js";
 import crypto from 'crypto'
 import Booking from "../models/Booking.js";
 import Escrow from '../models/Escrow.js'
-import { uploadToCloudinary } from '../configs/cloudinary.js'  // ✅ replaces imagekit
+import { uploadToCloudinary } from '../configs/cloudinary.js' 
 import { sendBookingConfirmationEmail, sendOwnerNotificationEmail } from '../utils/Emailservice.js'
 import { createEscrow } from './escrowController.js'
-
-// ❌ REMOVED: import ImageKit from "imagekit"
-// ❌ REMOVED: import imagekit from "../configs/imageKit.js"
-// ❌ REMOVED: import fs from "fs"
 
 export const changeRoleToOwner = async (req, res) => {
   try {

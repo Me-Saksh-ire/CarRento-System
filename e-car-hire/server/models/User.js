@@ -26,9 +26,9 @@ const userSchema = new mongoose.Schema({
   ownerVerification: {
     status: { type: String, enum: ['not_submitted', 'pending', 'verified', 'rejected'], default: 'not_submitted' },
     aadharNumber: String,
-    aadharImage: String,   // ImageKit URL
-    rcImage: String,       // ImageKit URL
-    selfieImage: String,   // ImageKit URL
+    aadharImage: String,  
+    rcImage: String,      
+    selfieImage: String,  
     submittedAt: Date,
     reviewedAt: Date,
     rejectReason: String,
@@ -38,7 +38,7 @@ const userSchema = new mongoose.Schema({
   renterVerification: {
     status: { type: String, enum: ['not_submitted', 'pending', 'verified', 'rejected'], default: 'not_submitted' },
     licenceNumber: String,
-    licenceImage: String,  // ImageKit URL
+    licenceImage: String, 
     submittedAt: Date,
     reviewedAt: Date,
     rejectReason: String,
