@@ -14,7 +14,7 @@ import ManageCars from './pages/owner/ManageCars'
 import ManageBooking from './pages/owner/ManageBooking'
 import AddCars from './pages/owner/AddCars'
 import OwnerVerification from './pages/owner/OwnerVerification'
-import OwnerProfile from './pages/owner/OwnerProfile'
+import OwnerProfile from './pages/owner/Ownerprofile'
 import { Toaster } from 'react-hot-toast'
 import { useAppContext } from './context/AppContext'
 
