@@ -1,22 +1,22 @@
-import ImageKit from "imagekit";
 import User from "../models/User.js";
 import Car from "../models/Car.js";
-import imagekit from "../configs/imageKit.js"
-import fs from "fs";
 import crypto from 'crypto'
 import Booking from "../models/Booking.js";
 import Escrow from '../models/Escrow.js'
+import { uploadToCloudinary } from '../configs/cloudinary.js'  // ✅ replaces imagekit
 import { sendBookingConfirmationEmail, sendOwnerNotificationEmail } from '../utils/Emailservice.js'
 import { createEscrow } from './escrowController.js'
+
+// ❌ REMOVED: import ImageKit from "imagekit"
+// ❌ REMOVED: import imagekit from "../configs/imageKit.js"
+// ❌ REMOVED: import fs from "fs"
 
 export const changeRoleToOwner = async (req, res) => {
   try {
     const { _id } = req.user
-
     await User.findByIdAndUpdate(_id, {
       'ownerVerification.status': 'not_submitted',
     })
-
     return res.json({ success: true, message: 'Please complete your verification to list cars.' })
   } catch (error) {
     console.log(error.message)
@@ -24,7 +24,6 @@ export const changeRoleToOwner = async (req, res) => {
   }
 }
 
-// API to list Cars
 export const addCar = async (req, res) => {
   try {
     const { _id } = req.user
@@ -38,28 +37,15 @@ export const addCar = async (req, res) => {
     }
 
     let car = JSON.parse(req.body.carData)
-    const imageFile = req.file
 
-    const fileBuffer = fs.readFileSync(imageFile.path)
-    const response = await imagekit.upload({
-      file: fileBuffer,
-      fileName: imageFile.originalname,
-      folder: '/cars'
-    })
-
-    const optimedImageUrl = imagekit.url({
-      path: response.filePath,
-      transformation: [
-        { width: '1280' },
-        { quality: 'auto' },
-        { format: 'webp' }
-      ]
-    })
+    // ✅ Upload to Cloudinary using buffer (no disk read needed)
+    const result = await uploadToCloudinary(req.file.buffer)
+    const imageUrl = result.secure_url
 
     await Car.create({
       ...car,
       owner: _id,
-      images: [optimedImageUrl],
+      images: [imageUrl],
       isAvailable: false,
       isVerified: 'pending'
     })
@@ -71,7 +57,6 @@ export const addCar = async (req, res) => {
   }
 }
 
-// API to list Owner Cars
 export const getOwnerCars = async (req, res) => {
   try {
     const { _id } = req.user;
@@ -83,7 +68,6 @@ export const getOwnerCars = async (req, res) => {
   }
 }
 
-// API to Toggle Car Availability
 export const toggleCarAvailability = async (req, res) => {
   try {
     const { _id } = req.user
@@ -93,14 +77,12 @@ export const toggleCarAvailability = async (req, res) => {
     if (car.owner.toString() !== _id.toString()) {
       return res.json({ success: false, message: 'Unauthorized' })
     }
-
     if (car.isVerified !== 'verified') {
       return res.json({ success: false, message: 'Car must be verified by admin before toggling availability.' })
     }
 
     car.isAvailable = !car.isAvailable
     await car.save()
-
     return res.json({ success: true, message: 'Availability Toggled!' })
   } catch (error) {
     console.log(error.message)
@@ -108,7 +90,6 @@ export const toggleCarAvailability = async (req, res) => {
   }
 }
 
-// API to delete a car
 export const deleteCar = async (req, res) => {
   try {
     const { _id } = req.user;
@@ -122,7 +103,6 @@ export const deleteCar = async (req, res) => {
     car.owner = null;
     car.isAvailable = false;
     await car.save()
-
     return res.json({ success: true, message: "Car Removed" })
   } catch (error) {
     console.log(error.message);
@@ -130,11 +110,9 @@ export const deleteCar = async (req, res) => {
   }
 }
 
-// API to get Dashboard Data
 export const getDashboardData = async (req, res) => {
   try {
     const { _id, role } = req.user;
-
     if (role !== 'owner') {
       return res.json({ success: false, message: "Unauthorized" })
     }
@@ -154,27 +132,26 @@ export const getDashboardData = async (req, res) => {
       )
       .reduce((acc, b) => acc + b.price, 0)
 
-    const dashboardData = {
-      totalCars: cars.length,
-      totalBookings: bookings.length,
-      pendingBookings: pendingBookings.length,
-      completedBookings: completedBookings.length,
-      recentBookings: bookings.slice(0, 3),
-      monthlyRevenue
-    }
-
-    return res.json({ success: true, dashboardData })
+    return res.json({
+      success: true,
+      dashboardData: {
+        totalCars: cars.length,
+        totalBookings: bookings.length,
+        pendingBookings: pendingBookings.length,
+        completedBookings: completedBookings.length,
+        recentBookings: bookings.slice(0, 3),
+        monthlyRevenue
+      }
+    })
   } catch (error) {
     console.log(error.message);
     return res.json({ success: false, message: error.message })
   }
 }
 
-// API to get getOwnerDashboard
 export const getOwnerDashboard = async (req, res) => {
   try {
     const ownerId = req.user._id
-
     const cars = await Car.find({ owner: ownerId })
     const bookings = await Booking.find({ owner: ownerId })
       .populate('car')
@@ -186,9 +163,7 @@ export const getOwnerDashboard = async (req, res) => {
     const confirmedBookings = bookings.filter(b => b.status === 'confirmed').length
     const completedBookings = bookings.filter(b => b.status === 'completed').length
 
-    let availableBalance = 0
-    let pendingBalance = 0
-    let totalEarnings = 0
+    let availableBalance = 0, pendingBalance = 0, totalEarnings = 0
 
     bookings.forEach(b => {
       if (b.paymentStatus === 'paid') {
@@ -205,12 +180,9 @@ export const getOwnerDashboard = async (req, res) => {
     const monthlyRevenue = bookings
       .filter(b => {
         const d = new Date(b.createdAt)
-        return (
-          d.getMonth() === now.getMonth() &&
+        return d.getMonth() === now.getMonth() &&
           d.getFullYear() === now.getFullYear() &&
-          b.otpVerified &&
-          b.paymentStatus === 'paid'
-        )
+          b.otpVerified && b.paymentStatus === 'paid'
       })
       .reduce((sum, b) => sum + b.price, 0)
 
@@ -247,75 +219,46 @@ export const getOwnerDashboard = async (req, res) => {
   }
 }
 
-// API to update User Image
 export const updateUserImage = async (req, res) => {
   try {
     const { _id } = req.user;
-    const imageFile = req.file;
 
-    const fileBuffer = fs.readFileSync(imageFile.path)
-    const response = await imagekit.upload({
-      file: fileBuffer,
-      fileName: imageFile.originalname,
-      folder: '/users'
-    })
+    // ✅ Upload to Cloudinary using buffer
+    const result = await uploadToCloudinary(req.file.buffer)
+    const image = result.secure_url
 
-    var optimedImageUrl = imagekit.url({
-      path: response.filePath,
-      transformation: [
-        { width: '400' },
-        { quality: 'auto' },
-        { format: 'webp' }
-      ]
-    })
-
-    const image = optimedImageUrl;
     await User.findByIdAndUpdate(_id, { image })
-
-    return res.json({ success: true, message: "Image Updated", image: optimedImageUrl })
+    return res.json({ success: true, message: "Image Updated", image })
   } catch (error) {
     console.log(error.message);
     return res.json({ success: false, message: error.message })
   }
 }
 
-// API to verify Pickup OTP (owner enters OTP renter shows them)
 export const verifyPickupOtp = async (req, res) => {
   try {
     const { bookingId, otp } = req.body
     const ownerId = req.user._id
 
     const booking = await Booking.findById(bookingId)
+    if (!booking) return res.json({ success: false, message: 'Booking not found' })
+    if (booking.owner.toString() !== ownerId.toString()) return res.json({ success: false, message: 'Unauthorized' })
+    if (booking.otpVerified) return res.json({ success: false, message: 'OTP already used — car already handed over' })
+    if (booking.pickupOtp !== otp) return res.json({ success: false, message: 'Invalid OTP. Please ask the renter to check their email.' })
 
-    if (!booking) {
-      return res.json({ success: false, message: 'Booking not found' })
-    }
-    if (booking.owner.toString() !== ownerId.toString()) {
-      return res.json({ success: false, message: 'Unauthorized' })
-    }
-    if (booking.otpVerified) {
-      return res.json({ success: false, message: 'OTP already used — car already handed over' })
-    }
-    if (booking.pickupOtp !== otp) {
-      return res.json({ success: false, message: 'Invalid OTP. Please ask the renter to check their email.' })
-    }
-
-    // ── Mark OTP as verified, set status to 'completed' ──────────────────
     await Booking.findByIdAndUpdate(bookingId, {
-      otpVerified:   true,
+      otpVerified: true,
       otpVerifiedAt: new Date(),
-      status:        'completed',
+      status: 'completed',
     })
 
-    // ── Release escrow — owner gets paid ─────────────────────────────────
     const escrow = await Escrow.findOne({ booking: bookingId, status: 'held' })
     if (escrow) {
       await Escrow.findByIdAndUpdate(escrow._id, {
-        status:     'released',
+        status: 'released',
         releasedAt: new Date(),
-        notes:      'Released after OTP verified at pickup'
+        notes: 'Released after OTP verified at pickup'
       })
-      console.log(`✅ Escrow released ₹${escrow.amount} to owner after OTP verify`)
     }
 
     return res.json({
@@ -330,14 +273,12 @@ export const verifyPickupOtp = async (req, res) => {
   }
 }
 
-// verifyPayment (called from owner-side if needed — e.g. webhook fallback)
 export const verifyPayment = async (req, res) => {
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body
 
-    // ── Verify Razorpay signature ──────────────────────────────────────────
     const sign = razorpay_order_id + '|' + razorpay_payment_id
-    const expectedSignature = crypto  // ✅ FIXED: crypto now imported at top
+    const expectedSignature = crypto
       .createHmac('sha256', process.env.RAZORPAY_SECRET_KEY)
       .update(sign)
       .digest('hex')
@@ -346,58 +287,44 @@ export const verifyPayment = async (req, res) => {
       return res.json({ success: false, message: 'Invalid payment signature' })
     }
 
-    // ── Generate OTP and update booking ───────────────────────────────────
     const pickupOtp = Math.floor(100000 + Math.random() * 900000).toString()
-
     const booking = await Booking.findOneAndUpdate(
       { orderId: razorpay_order_id },
-      {
-        paymentStatus: 'paid',
-        status:        'confirmed',
-        paymentId:     razorpay_payment_id,
-        pickupOtp,
-      },
+      { paymentStatus: 'paid', status: 'confirmed', paymentId: razorpay_payment_id, pickupOtp },
       { new: true }
-    )
-      .populate('car')
-      .populate('user', '-password')
+    ).populate('car').populate('user', '-password')
 
-    if (!booking) {
-      return res.json({ success: false, message: 'Booking not found' })
-    }
+    if (!booking) return res.json({ success: false, message: 'Booking not found' })
 
-    // ── Create escrow record ──────────────────────────────────────────────
     await createEscrow(booking, razorpay_payment_id)
 
-    // ── Email to renter ───────────────────────────────────────────────────
     await sendBookingConfirmationEmail(booking.user.email, {
-      userName:   booking.user.name,
-      carName:    `${booking.car.brand} ${booking.car.model}`,
+      userName: booking.user.name,
+      carName: `${booking.car.brand} ${booking.car.model}`,
       pickupDate: new Date(booking.pickupDate).toDateString(),
       returnDate: new Date(booking.returnDate).toDateString(),
       totalPrice: booking.price,
-      bookingId:  booking._id,
-      pickupOtp,  // ✅ OTP sent to renter
+      bookingId: booking._id,
+      pickupOtp,
     })
 
-    // ── Email to owner — with full renter details + pickup location + OTP ─
     const ownerUser = await User.findById(booking.owner).select('name email')
     if (ownerUser) {
       await sendOwnerNotificationEmail(ownerUser.email, {
-        ownerName:      ownerUser.name || 'Owner',
-        carName:        `${booking.car.brand} ${booking.car.model}`,
-        renterName:     booking.user.name,
-        renterEmail:    booking.user.email,
-        renterPhone:    booking.user.phone         || 'Not provided',
-        renterLicence:  booking.user.licenceNumber || 'Not provided',
-        renterAddress:  booking.user.address       || 'Not provided',
-        pickupLocation: booking.pickupLocation     || booking.car.location,
-        carLocation:    booking.car.location,
-        pickupDate:     new Date(booking.pickupDate).toDateString(),
-        returnDate:     new Date(booking.returnDate).toDateString(),
-        totalPrice:     booking.price,
-        bookingId:      booking._id,
-        pickupOtp,      // ✅ FIXED: was missing in original ownerController
+        ownerName: ownerUser.name || 'Owner',
+        carName: `${booking.car.brand} ${booking.car.model}`,
+        renterName: booking.user.name,
+        renterEmail: booking.user.email,
+        renterPhone: booking.user.phone || 'Not provided',
+        renterLicence: booking.user.licenceNumber || 'Not provided',
+        renterAddress: booking.user.address || 'Not provided',
+        pickupLocation: booking.pickupLocation || booking.car.location,
+        carLocation: booking.car.location,
+        pickupDate: new Date(booking.pickupDate).toDateString(),
+        returnDate: new Date(booking.returnDate).toDateString(),
+        totalPrice: booking.price,
+        bookingId: booking._id,
+        pickupOtp,
       })
     }
 
@@ -413,16 +340,11 @@ export const submitVerification = async (req, res) => {
     const { _id } = req.user
     const { aadharNumber, panNumber, bankAccount, ifscCode, upiId } = req.body
 
+    // ✅ Upload each doc to Cloudinary using buffer — no fs.readFileSync needed
     const uploadDoc = async (file) => {
       if (!file) return ''
-      const buffer = fs.readFileSync(file.path)
-      const resp = await imagekit.upload({
-        file: buffer,
-        fileName: file.originalname,
-        folder: '/owner-docs'
-      })
-      fs.unlinkSync(file.path)
-      return resp.url
+      const result = await uploadToCloudinary(file.buffer)
+      return result.secure_url
     }
 
     const aadharDocUrl = await uploadDoc(req.files?.aadharDoc?.[0])
@@ -430,13 +352,9 @@ export const submitVerification = async (req, res) => {
     const selfieUrl    = await uploadDoc(req.files?.selfie?.[0])
 
     await User.findByIdAndUpdate(_id, {
-      aadharNumber,
-      panNumber,
-      bankAccount,
-      ifscCode,
-      upiId,
-      'ownerVerification.status':      'pending',
-      'ownerVerification.submittedAt': new Date(),
+      aadharNumber, panNumber, bankAccount, ifscCode, upiId,
+      'ownerVerification.status':       'pending',
+      'ownerVerification.submittedAt':  new Date(),
       'ownerVerification.aadharNumber': aadharNumber,
       ...(aadharDocUrl && { 'ownerVerification.aadharImage': aadharDocUrl }),
       ...(rcBookUrl    && { 'ownerVerification.rcImage':     rcBookUrl }),

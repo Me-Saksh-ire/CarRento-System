@@ -287,7 +287,7 @@ const AdminCarVerifications = () => {
                     <p className="text-sm font-semibold text-slate-800">{viewCar.owner?.name}</p>
                     <p className="text-sm text-slate-500">{viewCar.owner?.email}</p>
                     <p className="text-xs text-slate-400 mt-2">Profile Licence: <span className="text-slate-600">{viewCar.owner?.licenceNumber || '—'}</span></p>
-                    <p className="text-xs text-slate-400">Renter Licence: <span className="text-slate-600">{viewCar.owner?.renterVerification?.licenceNumber || '—'}</span></p>
+                    <p className="text-xs text-slate-400">Registration No. : <span className="text-slate-600">{viewCar.registrationNumber || '—'}</span></p>
                   </div>
                 </div>
 
