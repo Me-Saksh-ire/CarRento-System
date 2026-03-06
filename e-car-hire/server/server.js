@@ -25,6 +25,10 @@ app.use(express.urlencoded({ extended: true }))
 
 connectDB()
 
+app.get('/', (req, res) => {
+  res.json({ success: true, message: 'CarRento API is running 🚀' })
+})
+
 app.use('/api/user',     userRouter)
 app.use('/api/owner',    ownerRouter)
 app.use('/api/bookings', bookingRouter)
