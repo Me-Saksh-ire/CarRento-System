@@ -14,8 +14,8 @@ app.use(cors({
   origin: [
     'http://localhost:5173',
     'http://localhost:5174',
-    'https://carrento-client.vercel.app',
-    'https://carrento-admin.vercel.app',
+    'https://car-rento-client.vercel.app',
+    'https://car-rento-admin.vercel.app',
   ],
   credentials: true,
 }))
