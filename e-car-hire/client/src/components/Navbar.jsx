@@ -60,7 +60,7 @@ const Navbar = () => {
                 <div className='flex max-sm:flex-col gap-6 items-start sm:items-center'>
 
                     {/* ── Admin Panel button — ONLY visible to admin role ── */}
-                    {!user && (
+                    {isAdmin  && (
                         <motion.a
                             href={ADMIN_APP_URL}
                             target="_blank"
