@@ -1,3 +1,5 @@
+import jwt from "jsonwebtoken"
+
 export const protect = async (req, res, next) => {
   let token = req.headers.authorization
 
