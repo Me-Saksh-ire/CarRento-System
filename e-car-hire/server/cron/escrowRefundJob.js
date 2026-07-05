@@ -1,14 +1,9 @@
-// server/cron/escrowRefundJob.js
-// Runs every hour and automatically refunds bookings where the owner
-// did not verify the pickup OTP within 24 hours of the pickup date.
-
 import cron  from 'node-cron'
 import Escrow from '../models/Escrow.js'
 import Booking from '../models/Booking.js'
 import { refundEscrow } from '../controllers/escrowController.js'
 
-// ── Schedule: every hour on the hour ─────────────────────────────────────
-// Change to '*/15 * * * *' during development/testing (every 15 min)
+
 cron.schedule('0 * * * *', async () => {
   console.log('\n⏱  [CRON] Running escrow auto-refund check…', new Date().toISOString())
 
@@ -45,7 +40,7 @@ cron.schedule('0 * * * *', async () => {
         escrow._id,
         'auto_refund: owner did not verify OTP within 24 hours of pickup date'
       )
-      console.log(`[CRON] Auto-refunded escrow ${escrow._id} for booking ${booking?._id}`)
+      console.log(`Auto-refunded escrow ${escrow._id} for booking ${booking?._id}`)
     }
   } catch (error) {
     console.error('[CRON] Error in escrow auto-refund job:', error.message)

@@ -1,22 +1,21 @@
-// server/middlewares/auth.js
-import jwt  from 'jsonwebtoken'
-import User from '../models/User.js'
-
 export const protect = async (req, res, next) => {
-  const token = req.headers.authorization
+  let token = req.headers.authorization
+
+  if (token && token.startsWith('Bearer ')) {
+    token = token.split(' ')[1]
+  }
+
   if (!token) return res.json({ success: false, message: 'Not authorized' })
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET)
 
-    // ── Admin JWT has { email, role: 'admin' } — no DB lookup needed ──────
     if (decoded.role === 'admin') {
       req.user = { email: decoded.email, role: 'admin' }
       return next()
     }
 
-    // ── Regular user / owner JWT ───────────────────────────────────────────
-    const userId = decoded.id || decoded
+    const userId = decoded.id
     if (!userId) return res.json({ success: false, message: 'Not authorized' })
 
     const user = await User.findById(userId).select('-password')

@@ -5,12 +5,12 @@ import jwt from "jsonwebtoken"
 import razorpay from "razorpay"
 import Booking from '../models/Booking.js';
 import crypto from 'crypto'
-import { sendBookingConfirmationEmail, sendOwnerNotificationEmail, sendPasswordResetEmail  } from '../utils/Emailservice.js'
+import { sendBookingConfirmationEmail, sendOwnerNotificationEmail, sendPasswordResetEmail } from '../utils/Emailservice.js'
 import { createEscrow } from './escrowController.js'
 
 const generateToken = (userId) => {
   const payload = userId;
-  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' })
+  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '7d' })
 }
 
 export const registerUser = async (req, res) => {
@@ -47,7 +47,8 @@ export const loginUser = async (req, res) => {
     if (!isMatch) {
       return res.json({ success: false, message: "Invalid Credentials" });
     }
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+    
+    const token = generateToken(user._id.toString())
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -168,12 +169,12 @@ export const verifyPayment = async (req, res) => {
     try {
       // ── Email to renter ──────────────────────────────────────────────────
       await sendBookingConfirmationEmail(updatedBooking.user.email, {
-        userName:   updatedBooking.user.name,
-        carName:    `${updatedBooking.car.brand} ${updatedBooking.car.model}`,
+        userName: updatedBooking.user.name,
+        carName: `${updatedBooking.car.brand} ${updatedBooking.car.model}`,
         pickupDate: new Date(updatedBooking.pickupDate).toDateString(),
         returnDate: new Date(updatedBooking.returnDate).toDateString(),
         totalPrice: updatedBooking.price,
-        bookingId:  updatedBooking._id,
+        bookingId: updatedBooking._id,
         pickupOtp,  // ✅ OTP sent to renter
       })
 
@@ -181,19 +182,19 @@ export const verifyPayment = async (req, res) => {
       const ownerUser = await User.findById(updatedBooking.owner).select('name email')
       if (ownerUser) {
         await sendOwnerNotificationEmail(ownerUser.email, {
-          ownerName:      ownerUser.name || 'Owner',
-          carName:        `${updatedBooking.car.brand} ${updatedBooking.car.model}`,
-          renterName:     updatedBooking.user.name,
-          renterEmail:    updatedBooking.user.email,
-          renterPhone:    updatedBooking.user.phone     || 'Not provided',
-          renterLicence:  updatedBooking.user.licenceNumber || 'Not provided',
-          renterAddress:  updatedBooking.user.address   || 'Not provided',
+          ownerName: ownerUser.name || 'Owner',
+          carName: `${updatedBooking.car.brand} ${updatedBooking.car.model}`,
+          renterName: updatedBooking.user.name,
+          renterEmail: updatedBooking.user.email,
+          renterPhone: updatedBooking.user.phone || 'Not provided',
+          renterLicence: updatedBooking.user.licenceNumber || 'Not provided',
+          renterAddress: updatedBooking.user.address || 'Not provided',
           pickupLocation: updatedBooking.pickupLocation || updatedBooking.car.location,
-          carLocation:    updatedBooking.car.location,
-          pickupDate:     new Date(updatedBooking.pickupDate).toDateString(),
-          returnDate:     new Date(updatedBooking.returnDate).toDateString(),
-          totalPrice:     updatedBooking.price,
-          bookingId:      updatedBooking._id,
+          carLocation: updatedBooking.car.location,
+          pickupDate: new Date(updatedBooking.pickupDate).toDateString(),
+          returnDate: new Date(updatedBooking.returnDate).toDateString(),
+          totalPrice: updatedBooking.price,
+          bookingId: updatedBooking._id,
           pickupOtp,      // ✅ OTP also sent to owner so they can verify at handover
         })
       }
@@ -230,19 +231,19 @@ export const updateProfile = async (req, res) => {
         currentStatus === 'not_submitted' ||
         currentStatus === 'rejected'
       ) {
-        updateFields['renterVerification.status']        = 'pending'
+        updateFields['renterVerification.status'] = 'pending'
         updateFields['renterVerification.licenceNumber'] = licenceNumber.trim()
-        updateFields['renterVerification.submittedAt']   = new Date()
-        updateFields['renterVerification.rejectReason']  = null
+        updateFields['renterVerification.submittedAt'] = new Date()
+        updateFields['renterVerification.rejectReason'] = null
         console.log('📋 renterVerification → pending for', existingUser.email)
       } else {
         updateFields['renterVerification.licenceNumber'] = licenceNumber.trim()
         console.log('📋 renterVerification already', currentStatus, '— syncing licenceNumber only')
       }
     } else {
-      updateFields['renterVerification.status']        = 'not_submitted'
+      updateFields['renterVerification.status'] = 'not_submitted'
       updateFields['renterVerification.licenceNumber'] = null
-      updateFields['renterVerification.submittedAt']   = null
+      updateFields['renterVerification.submittedAt'] = null
       console.log('📋 licenceNumber cleared → renterVerification reset to not_submitted')
     }
 
@@ -278,7 +279,7 @@ export const forgotPassword = async (req, res) => {
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
 
     await User.findByIdAndUpdate(user._id, {
-      resetOtp:       otp,
+      resetOtp: otp,
       resetOtpExpiry: otpExpiry,
     })
 
