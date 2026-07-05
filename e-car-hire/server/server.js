@@ -23,21 +23,23 @@ app.use(cors({
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
-connectDB()
+const startServer = async () => {
+  await connectDB()
 
-app.get('/', (req, res) => {
-  res.json({ success: true, message: 'CarRento API is running 🚀' })
-})
-
-app.use('/api/user',     userRouter)
-app.use('/api/owner',    ownerRouter)
-app.use('/api/bookings', bookingRouter)
-app.use('/api/admin',    adminRouter)
-app.use('/api/escrow',   escrowRouter)
-
-const PORT = process.env.PORT || 3000
-if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 3000
   app.listen(PORT, () => console.log(`CarRento Server running on port ${PORT}`))
 }
+
+startServer()
+
+app.get('/', (req, res) => {
+  res.json({ success: true, message: 'CarRento API is running' })
+})
+
+app.use('/api/user', userRouter)
+app.use('/api/owner', ownerRouter)
+app.use('/api/bookings', bookingRouter)
+app.use('/api/admin', adminRouter)
+app.use('/api/escrow', escrowRouter)
 
 export default app
