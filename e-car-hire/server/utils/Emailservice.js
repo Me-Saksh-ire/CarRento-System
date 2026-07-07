@@ -30,14 +30,14 @@ export const sendBookingConfirmationEmail = async (toEmail, {
     </style></head>
     <body><div class="wrap">
       <div class="hdr">
-        <h1>🎉 Booking Confirmed!</h1>
+        <h1>Booking Confirmed!</h1>
         <p>Your payment is secured in escrow — ${carName} is yours.</p>
       </div>
       <div class="bd">
         <p style="color:#333;font-size:15px">Hi <strong>${userName}</strong>, your booking is confirmed and payment is held securely in escrow.</p>
 
         <div class="box">
-          <h3>📅 Booking Details</h3>
+          <h3>Booking Details</h3>
           <div class="row"><span class="lbl">Car</span><span class="val">${carName}</span></div>
           <div class="row"><span class="lbl">Pickup Date</span><span class="val">${pickupDate}</span></div>
           <div class="row"><span class="lbl">Return Date</span><span class="val">${returnDate}</span></div>
@@ -57,7 +57,7 @@ export const sendBookingConfirmationEmail = async (toEmail, {
 
         <div style="background:#F0FDF4;border:1px solid #86EFAC;border-radius:10px;padding:16px;margin:16px 0">
           <p style="margin:0;font-size:13px;color:#166534">
-            💰 Your payment of <strong>₹${Number(totalPrice).toLocaleString('en-IN')}</strong> is held safely in escrow.
+            Your payment of <strong>₹${Number(totalPrice).toLocaleString('en-IN')}</strong> is held safely in escrow.
             It will only be released to the owner after you hand over the OTP, protecting you from fraud.
           </p>
         </div>
@@ -71,9 +71,9 @@ export const sendBookingConfirmationEmail = async (toEmail, {
       subject: `Booking Confirmed — ${carName} | OTP: ${pickupOtp}`,
       html
     })
-    console.log(`✅ Booking confirmation email sent to ${toEmail}`)
+    console.log(`Booking confirmation email sent to ${toEmail}`)
   } catch (error) {
-    console.log('❌ Error sending booking confirmation email:', error.message)
+    console.log('Error sending booking confirmation email:', error.message)
   }
 }
 
@@ -116,7 +116,7 @@ export const sendOwnerNotificationEmail = async (ownerEmail, {
     </style></head>
     <body><div class="wrap">
       <div class="hdr">
-        <h1>🚗 New Booking — ${carName}</h1>
+        <h1>New Booking — ${carName}</h1>
         <p>Payment secured in escrow • Ready for handover</p>
       </div>
       <div class="bd">
@@ -124,7 +124,7 @@ export const sendOwnerNotificationEmail = async (ownerEmail, {
 
         <!-- Renter Details -->
         <div class="box">
-          <h3>👤 Renter Details</h3>
+          <h3>Renter Details</h3>
           <div class="row"><span class="lbl">Full Name</span><span class="val">${renterName}</span></div>
           <div class="row"><span class="lbl">Email</span><span class="val">${renterEmail}</span></div>
           <div class="row"><span class="lbl">Phone</span><span class="val">${renterPhone || 'Not provided'}</span></div>
@@ -144,7 +144,7 @@ export const sendOwnerNotificationEmail = async (ownerEmail, {
 
         <!-- Booking Details -->
         <div class="box">
-          <h3>📅 Booking Details</h3>
+          <h3>Booking Details</h3>
           <div class="row"><span class="lbl">Car</span><span class="val">${carName}</span></div>
           <div class="row"><span class="lbl">Pickup Date</span><span class="val">${pickupDate}</span></div>
           <div class="row"><span class="lbl">Return Date</span><span class="val">${returnDate}</span></div>
@@ -170,12 +170,12 @@ export const sendOwnerNotificationEmail = async (ownerEmail, {
     await transporter.sendMail({
       from: `"CarRento" <${process.env.EMAIL_USER}>`,
       to: ownerEmail,
-      subject: `🚗 New Booking: ${carName} — ₹${Number(totalPrice).toLocaleString('en-IN')} in Escrow`,
+      subject: `New Booking: ${carName} — ₹${Number(totalPrice).toLocaleString('en-IN')} in Escrow`,
       html
     })
-    console.log(`✅ Owner notification email sent to ${ownerEmail}`)
+    console.log(`Owner notification email sent to ${ownerEmail}`)
   } catch (error) {
-    console.log('❌ Error sending owner notification email:', error.message)
+    console.log('Error sending owner notification email:', error.message)
   }
 }
 
@@ -206,7 +206,7 @@ export const sendBookingCancellationEmail = async (toEmail, {
       .ft{background:#f8f9fa;padding:16px;text-align:center;font-size:12px;color:#aaa}
     </style></head>
     <body><div class="wrap">
-      <div class="hdr"><h1>🚫 Booking Cancelled</h1></div>
+      <div class="hdr"><h1>Booking Cancelled</h1></div>
       <div class="bd">
         <p style="font-size:15px;color:#333">Hi <strong>${userName}</strong>, your booking has been cancelled.</p>
         <div class="box">
@@ -227,9 +227,9 @@ export const sendBookingCancellationEmail = async (toEmail, {
       subject: `Booking Cancelled — ${carName} | #${bookingId}`,
       html
     })
-    console.log(`✅ Cancellation email sent to ${toEmail}`)
+    console.log(`Cancellation email sent to ${toEmail}`)
   } catch (error) {
-    console.log('❌ Error sending cancellation email:', error.message)
+    console.log('Error sending cancellation email:', error.message)
   }
 }
 
@@ -246,9 +246,9 @@ export const sendStatusChangeEmail = async (toEmail, {
     })
 
     const cfg = {
-      confirmed:  { color: '#16A34A', badge: 'Confirmed', message: 'Your booking has been confirmed by the owner.' },
-      cancelled:  { color: '#DC2626', badge: 'Cancelled',  message: 'Your booking has been cancelled.' },
-      pending:    { color: '#D97706', badge: 'Pending',    message: 'Your booking status has been updated to pending.' },
+      confirmed: { color: '#16A34A', badge: 'Confirmed', message: 'Your booking has been confirmed by the owner.' },
+      cancelled: { color: '#DC2626', badge: 'Cancelled', message: 'Your booking has been cancelled.' },
+      pending: { color: '#D97706', badge: 'Pending', message: 'Your booking status has been updated to pending.' },
     }[status] || { color: '#555', badge: status, message: `Your booking status changed to ${status}.` }
 
     const html = `
@@ -319,7 +319,7 @@ export const sendPasswordResetEmail = async (toEmail, { userName, otp }) => {
     </style></head>
     <body><div class="wrap">
       <div class="hdr">
-        <h1>🔐 Password Reset Request</h1>
+        <h1>Password Reset Request</h1>
         <p>Use the OTP below to reset your CarRento password</p>
       </div>
       <div class="bd">
@@ -339,7 +339,7 @@ export const sendPasswordResetEmail = async (toEmail, { userName, otp }) => {
         </div>
 
         <div class="warning">
-          ⚠️ <strong>Did not request this?</strong> If you didn't request a password reset,
+          <strong>Did not request this?</strong> If you didn't request a password reset,
           ignore this email. Your account is safe.
         </div>
 
@@ -353,12 +353,12 @@ export const sendPasswordResetEmail = async (toEmail, { userName, otp }) => {
     await transporter.sendMail({
       from: `"CarRento" <${process.env.EMAIL_USER}>`,
       to: toEmail,
-      subject: `🔐 Password Reset OTP: ${otp} — CarRento`,
+      subject: `Password Reset OTP: ${otp} — CarRento`,
       html
     })
     console.log(`✅ Password reset OTP email sent to ${toEmail}`)
   } catch (error) {
-    console.log('❌ Error sending password reset email:', error.message)
+    console.log('Error sending password reset email:', error.message)
   }
 }
 
@@ -394,7 +394,7 @@ export const sendBookingRefundEmail = async (toEmail, {
     </style></head>
     <body><div class="wrap">
       <div class="hdr">
-        <h1>💰 Refund Initiated</h1>
+        <h1>Refund Initiated</h1>
         <p>Your booking has been cancelled and a refund has been initiated</p>
       </div>
       <div class="bd">
@@ -403,7 +403,7 @@ export const sendBookingRefundEmail = async (toEmail, {
 
         <!-- Booking Details -->
         <div class="box">
-          <h3 style="margin:0 0 12px;font-size:13px;color:#555;text-transform:uppercase;letter-spacing:.5px">📅 Booking Details</h3>
+          <h3 style="margin:0 0 12px;font-size:13px;color:#555;text-transform:uppercase;letter-spacing:.5px">Booking Details</h3>
           <div class="row"><span class="lbl">Car</span><span class="val">${carName}</span></div>
           <div class="row"><span class="lbl">Pickup Date</span><span class="val">${pickupDate}</span></div>
           <div class="row"><span class="lbl">Return Date</span><span class="val">${returnDate}</span></div>
@@ -413,7 +413,7 @@ export const sendBookingRefundEmail = async (toEmail, {
 
         <!-- Refund Details -->
         <div class="refund-box">
-          <h3>✅ Refund Status</h3>
+          <h3>Refund Status</h3>
           <p style="margin:0 0 8px;font-size:13px;color:#D97706">Your refund has been successfully initiated.</p>
           <div class="refund-amount">₹${Number(totalPrice).toLocaleString('en-IN')}</div>
           <p style="margin:0;font-size:12px;color:#92400E">Refund ID:</p>
@@ -425,8 +425,8 @@ export const sendBookingRefundEmail = async (toEmail, {
           <h3 style="margin:0 0 12px;color:#166534;font-size:15px">⏱️ Timeline</h3>
           <div style="font-size:13px;color:#166534;line-height:1.8">
             <p style="margin:0"><strong>✓ Refund Initiated:</strong> Today, ${new Date().toDateString()}</p>
-            <p style="margin:8px 0 0"><strong>⏳ Processing Time:</strong> 5-7 business days</p>
-            <p style="margin:8px 0 0"><strong>💳 Refund to:</strong> Your original payment method</p>
+            <p style="margin:8px 0 0"><strong>Processing Time:</strong> 5-7 business days</p>
+            <p style="margin:8px 0 0"><strong>Refund to:</strong> Your original payment method</p>
           </div>
         </div>
 
@@ -441,11 +441,11 @@ export const sendBookingRefundEmail = async (toEmail, {
     await transporter.sendMail({
       from: `"CarRento" <${process.env.EMAIL_USER}>`,
       to: toEmail,
-      subject: `💰 Refund Initiated — ₹${Number(totalPrice).toLocaleString('en-IN')} | #${bookingId}`,
+      subject: `Refund Initiated — ₹${Number(totalPrice).toLocaleString('en-IN')} | #${bookingId}`,
       html
     })
-    console.log(`✅ Refund email sent to ${toEmail}`)
+    console.log(`Refund email sent to ${toEmail}`)
   } catch (error) {
-    console.log('❌ Error sending refund email:', error.message)
+    console.log('Error sending refund email:', error.message)
   }
 }
