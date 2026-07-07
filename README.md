@@ -154,3 +154,14 @@ npm run dev
 - [ ] Add reviews and ratings for cars/rental experience
 - [ ] Multi-language support
 - [ ] Advanced analytics for admin dashboard
+
+---
+
+## 👩‍💻 Author
+
+**Sakshi**
+MERN Stack Developer
+[Portfolio](https://sakshi-portfolio-sepia.vercel.app)
+[GitHub](https://github.com/Me-Saksh-ire)
+
+---
