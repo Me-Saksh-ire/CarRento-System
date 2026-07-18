@@ -119,10 +119,10 @@ npm run dev
 4. Booking confirmation email is sent to the user.
 
 ### Pickup Verification Flow
-1. On the day of pickup, the system generates a **unique OTP**.
-2. OTP is sent to the user's registered email.
-3. The renter shares the OTP with staff/admin at pickup.
-4. Once verified, the escrowed payment is released and the rental officially begins.
+1. When the renter books a car, an OTP is generated and sent to their registered email the same day.
+2. The renter holds onto this OTP until the scheduled pickup day.
+3. On pickup day, the renter shares the OTP with the car owner/staff.
+4. Once the owner verifies the OTP, the escrowed payment is released and the renter receives the car to begin the rental.
 
 ### Admin Flow
 1. Admin logs in via a protected admin route.
